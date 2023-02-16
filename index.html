@@ -120,7 +120,7 @@
 
       function validateForm(e) {
         let tokenIds = document.getElementById('token_ids').value;
-        tokenIds = tokeIds.replace(/\s/g, "");
+        tokenIds = tokenIds.replace(/\s/g, "");
         if (!validateIds(tokenIds)) {
           e.preventDefault();
         }
