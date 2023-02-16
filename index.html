@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Banner Check</title>
+    <link rel="shortcut icon" href="favicon.ico" />
+    <style>
+      @import url(fonts/carbon-bold.css);
+      body {
+        margin-top: 50px;
+        text-align: center;
+        background: black;
+      }
+      body, input {
+        font-size: 18px;
+        color: white;
+        text-transform: uppercase;
+        font-family: "Carbon Bold", "Helvetica Neue", Arial, sans-serif;
+      }
+      form, p {
+        padding: 1em;
+      }
+      input {
+        background: #111;
+        padding: .5em;
+        outline: none;
+        border: none;
+      }
+      input[type="submit"]:hover {
+        cursor: pointer;
+        background: #222;
+      }
+      a {
+        color: white;
+      }
+      canvas {
+        border: 5px #111 solid;
+      }
+      svg {
+        display: inline-block;
+        float: left;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Banner Check</h1>
+    <form action="" id="form">
+      <input type="text" id="token_ids" name="ids" placeholder="4094,4095,4096" />
+      <input type="submit" value="Generate" />
+    </form>
+    <canvas id="banner" width="1500" height="500"></canvas>
+    <form action="" id="download" style="display: none;">
+      <input type="submit" value="Download &#x2193;" />
+    </form>
+    <p>
+      Created by <a href="https://twitter.com/0xdownshift" target="_blank">downshift.eth</a>.
+      Made for appreciatoors of <a href="https://checks.art" target="_blank">VV Checks</a> by <a href="https://twitter.com/jackbutcher" target="_blank">Jack Butcher</a>.
+    </p>
+    <script type="module">
+      import {ethers} from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.0.3/ethers.min.js";
+      const provider = new ethers.AlchemyProvider("mainnet", "UmMROr9RT6mlpwWnRyKZF2m0CKeDUM8-");
+
+      // application binary interface
+      const abi = [{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"svg","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"}];
+      const contract = new ethers.Contract("0x036721e5A769Cc48B3189EFbb9ccE4471E8A48B1", abi, provider);
+
+      const $main = document.getElementById("main");
+      const parser = new DOMParser();
+
+      let tokenIds = [2826, 4096, 7016];
+      const renderBanner = (tokenIds) => {
+        
+      }
+
+      function validateIds(string) {
+        const pattern = /^(\d{1,5},){0,4}\d{1,5}$/;
+        const result = pattern.test(string);
+        if (!result) {
+          alert('Please provide between 1 and 5 valid token IDs in the following format: 4094,4095,4096');
+        }
+        return result;
+      }
+
+      // get token ids from url, if present
+      const params = new Proxy(new URLSearchParams(window.location.search), {
+        get: (searchParams, prop) => searchParams.get(prop),
+      });
+      let ids = params.ids;
+      if (ids) {
+        if (validateIds(ids)) {
+          document.getElementById('token_ids').value = ids;
+          tokenIds = ids.split(",");
+          const getSVGs = tokenIds.map(id => contract.svg(id));
+          let svgs = await Promise.all(getSVGs);
+
+          // alter styling of svgs
+          svgs = svgs.map(data => {
+            const node = parser.parseFromString(data, "image/svg+xml");
+            node.firstChild.setAttribute("style", "background: none;");
+            node.querySelectorAll('rect')[1].setAttribute("fill", "none");
+            return node.firstChild.outerHTML;
+          });
+
+          // paint canvas black
+          const canvas = document.getElementById("banner");
+          const ctx = canvas.getContext("2d");
+          ctx.rect(0, 0, 1500, 500);
+          ctx.fill();
+
+          // draw svgs onto canvas
+          const DOMURL = window.URL || window.webkitURL || window;
+          const offset = 1500 / (svgs.length + 1);
+          svgs.forEach((data, i) => {
+            const img = new Image();
+            const svg = new Blob([data], {type: 'image/svg+xml'});
+            const url = DOMURL.createObjectURL(svg);
+            img.onload = function() {
+              ctx.drawImage(img, (offset * (i+1)) - 250, 0);
+              DOMURL.revokeObjectURL(url);
+            }
+            img.src = url;
+          });
+          document.getElementById('download').setAttribute("style", "display:block;");
+        }
+      }
+
+      function validateForm(e) {
+        let tokenIds = document.getElementById('token_ids').value;
+        if (!validateIds(tokenIds)) {
+          e.preventDefault();
+        }
+      }
+      const form = document.getElementById('form');
+      form.addEventListener('submit', validateForm);
+
+      const downloadForm = document.getElementById('download');
+      downloadForm.addEventListener('submit', download);
+
+      function download(e) {
+        e.preventDefault();
+        const link = document.createElement('a');
+        link.download = 'banner-check.png';
+        link.href = document.getElementById('banner').toDataURL()
+        link.click();
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+@font-face {
+    font-family: "Carbon Bold";
+    src: url("4104a580e6f3e91f7e6b93986bcddafa.eot"); /* IE9*/
+    src: url("4104a580e6f3e91f7e6b93986bcddafa.eot?#iefix")
+            format("embedded-opentype"),
+        /* IE6-IE8 */ url("4104a580e6f3e91f7e6b93986bcddafa.woff2")
+            format("woff2"),
+        /* chrome、firefox */ url("4104a580e6f3e91f7e6b93986bcddafa.woff")
+            format("woff"),
+        /* chrome、firefox */ url("4104a580e6f3e91f7e6b93986bcddafa.ttf")
+            format("truetype"),
+        /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+            url("4104a580e6f3e91f7e6b93986bcddafa.svg#Carbon Bold")
+            format("svg"); /* iOS 4.1- */
+}
