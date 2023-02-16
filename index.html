@@ -36,10 +36,6 @@
       canvas {
         border: 5px #111 solid;
       }
-      svg {
-        display: inline-block;
-        float: left;
-      }
     </style>
   </head>
   <body>
@@ -64,13 +60,8 @@
       const abi = [{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"svg","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"}];
       const contract = new ethers.Contract("0x036721e5A769Cc48B3189EFbb9ccE4471E8A48B1", abi, provider);
 
-      const $main = document.getElementById("main");
       const parser = new DOMParser();
-
-      let tokenIds = [2826, 4096, 7016];
-      const renderBanner = (tokenIds) => {
-        
-      }
+      let tokenIds;
 
       function validateIds(string) {
         const pattern = /^(\d{1,5},){0,4}\d{1,5}$/;
@@ -87,6 +78,7 @@
       });
       let ids = params.ids;
       if (ids) {
+        ids = ids.replace(/\s/g, "");
         if (validateIds(ids)) {
           document.getElementById('token_ids').value = ids;
           tokenIds = ids.split(",");
@@ -97,6 +89,8 @@
           svgs = svgs.map(data => {
             const node = parser.parseFromString(data, "image/svg+xml");
             node.firstChild.setAttribute("style", "background: none;");
+            node.firstChild.setAttribute("width", 500);
+            node.firstChild.setAttribute("height", 500);
             node.querySelectorAll('rect')[1].setAttribute("fill", "none");
             return node.firstChild.outerHTML;
           });
@@ -115,7 +109,7 @@
             const svg = new Blob([data], {type: 'image/svg+xml'});
             const url = DOMURL.createObjectURL(svg);
             img.onload = function() {
-              ctx.drawImage(img, (offset * (i+1)) - 250, 0);
+              ctx.drawImage(img, (offset * (i+1)) - 250, 0, 500, 500);
               DOMURL.revokeObjectURL(url);
             }
             img.src = url;
@@ -126,6 +120,7 @@
 
       function validateForm(e) {
         let tokenIds = document.getElementById('token_ids').value;
+        tokenIds = tokeIds.replace(/\s/g, "");
         if (!validateIds(tokenIds)) {
           e.preventDefault();
         }
