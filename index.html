@@ -20,15 +20,25 @@
       form, p {
         padding: 1em;
       }
+      p {
+        line-height: 2em;
+      }
       input {
         background: #111;
         padding: .5em;
         outline: none;
         border: none;
       }
+      input:focus {
+        background: #222;
+      }
       input[type="submit"]:hover {
         cursor: pointer;
         background: #222;
+      }
+      input[type="submit"]:active {
+        position: relative;
+        top: 1px;
       }
       a {
         color: white;
@@ -36,21 +46,106 @@
       canvas {
         border: 5px #111 solid;
       }
+
+      .check-container {
+        display: inline-block;
+        position: relative;
+        padding-right: 35px;
+        padding-top: 4px;
+        margin-top: 20px;
+        margin-bottom: 12px;
+        margin-right: 12px;
+        cursor: pointer;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      .check-container input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+      }
+
+      .check {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 25px;
+        width: 25px;
+        background-color: #111;
+        border-radius: 5px;
+      }
+
+      .check::before {
+        content: " ";
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        border-radius: 5px;
+        background-color: #111;
+        transform: rotateY(0deg) rotate(45deg);
+      }
+
+      .check-container:hover input ~ .check, .check-container:hover input ~ .check::before {
+        background-color: #222;
+      }
+
+      .check-container:active {
+        top: 1px;
+      }
+
+      .check-container input:checked ~ .check, .check-container input:checked ~ .check::before {
+        background-color: #2196F3;
+      }
+
+      .check:after {
+        content: "";
+        position: absolute;
+        display: none;
+      }
+
+      .check-container input:checked ~ .check:after {
+        display: block;
+      }
+
+      .check-container .check:after {
+        left: 9px;
+        top: 5px;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 3px 3px 0;
+        -webkit-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+        transform: rotate(45deg);
+      }
     </style>
   </head>
   <body>
     <h1>Banner Check</h1>
     <form action="" id="form">
-      <input type="text" id="token_ids" name="ids" placeholder="4094,4095,4096" />
-      <input type="submit" value="Generate" />
+      <div>
+        <input type="text" id="token_ids" name="ids" placeholder="4094,4095,4096" />
+        <input type="submit" value="Generate" />
+      </div>
+      <div>
+        <label class="check-container">Include Token Ids?<input type="checkbox" name="include_token_ids" id="include_token_ids" /> <span class="check"></span></label>
+      </div>
     </form>
     <canvas id="banner" width="1500" height="500"></canvas>
     <form action="" id="download" style="display: none;">
       <input type="submit" value="Download &#x2193;" />
     </form>
     <p>
+      Made for enjoyoors of <a href="https://checks.art" target="_blank">VV Checks</a> by <a href="https://twitter.com/jackbutcher" target="_blank">Jack Butcher</a>.
+      <br />
       Created by <a href="https://twitter.com/0xdownshift" target="_blank">downshift.eth</a>.
-      Made for appreciatoors of <a href="https://checks.art" target="_blank">VV Checks</a> by <a href="https://twitter.com/jackbutcher" target="_blank">Jack Butcher</a>.
     </p>
     <script type="module">
       import {ethers} from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.0.3/ethers.min.js";
@@ -77,6 +172,10 @@
         get: (searchParams, prop) => searchParams.get(prop),
       });
       let ids = params.ids;
+      const includeTokenIds = !!params.include_token_ids;
+      if (includeTokenIds) {
+        document.getElementById('include_token_ids').setAttribute("checked", "checked");
+      }
       if (ids) {
         ids = ids.replace(/\s/g, "");
         if (validateIds(ids)) {
@@ -109,10 +208,18 @@
             const svg = new Blob([data], {type: 'image/svg+xml'});
             const url = DOMURL.createObjectURL(svg);
             img.onload = function() {
-              ctx.drawImage(img, (offset * (i+1)) - 250, 0, 500, 500);
+              ctx.drawImage(img, (offset * (i + 1)) - 250, 0, 500, 500);
               DOMURL.revokeObjectURL(url);
             }
             img.src = url;
+
+            if (includeTokenIds) {
+              // draw token id
+              ctx.font = "30px Carbon Bold";
+              ctx.fillStyle = "#ffffff";
+              ctx.textAlign = "center";
+              ctx.fillText(tokenIds[i], (offset * (i + 1)), 430);
+            }
           });
           document.getElementById('download').setAttribute("style", "display:block;");
         }
